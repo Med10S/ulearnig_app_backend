@@ -10,6 +10,28 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
+/**1)L'utilisateur envoie une requête avec les données nécessaires 
+ * (avatar, type, open_id, name, email, password) au point de terminaison correspondant.
+
+2)Le code commence par valider ces données à l'aide de la classe Validator de Laravel.
+Si la validation échoue, il renvoie une réponse JSON avec les erreurs de validation.
+
+3)Si la validation réussit, il vérifie si un utilisateur avec le même type et 
+open_id existe déjà dans la base de données.
+
+4)Si l'utilisateur n'existe pas, il génère un token unique pour l'utilisateur, 
+enregistre l'heure de création, crypte le mot de passe, 
+insère l'utilisateur dans la base de données et lui attribue un jeton d'accès. Ensuite, 
+il renvoie les informations de l'utilisateur créé en réponse.
+
+5)Si l'utilisateur existe déjà, il génère un nouveau jeton d'accès pour cet utilisateur 
+et met à jour le jeton d'accès dans la base de données. Ensuite, il renvoie les informations 
+de l'utilisateur existant en réponse.
+
+6)La fonction loginUser est similaire mais est utilisée pour authentifier un utilisateur existant 
+en vérifiant les informations d'identification (email et mot de passe) 
+et en renvoyant un jeton d'accès s'il est valide.
+*/
 class UserController extends Controller
 {
     /**
@@ -17,8 +39,9 @@ class UserController extends Controller
      * @param Request $request
      * @return User
      */
-    public function createUser(Request $request)
+    public function login(Request $request)
     {
+
         try {
             $validateUser = Validator::make(
                 $request->all(),
@@ -28,7 +51,7 @@ class UserController extends Controller
                     'open_id' => 'required',
                     'name' => 'required',
                     'email' => 'required',
-                    'password' => 'required|min:6',
+                    //'password' => 'required|min:6',
                 ]
             );
             if ($validateUser->fails()) {
@@ -40,11 +63,15 @@ class UserController extends Controller
             }
             //validated will have all user field values
             //we can save in the database
+            // Obtenir les données validées après la validation
+
             $validated = $validateUser->validated();
-            $map = [];
+            $map = []; // Créer un tableau de correspondance
+
             //email,phone,google,facebook,apple
             $map['type'] = $validated['type'];
             $map['open_id'] = $validated['open_id'];
+            // Vérifier si un utilisateur avec le même 'type' et 'open_id' existe déjà
 
             $user = User::where($map)->first();
             //whether user has aleardy logged in or not
@@ -59,11 +86,11 @@ class UserController extends Controller
                 //user first time created
                 $validated['created_at'] = Carbon::now();
                 //encript password
-                $validated['password'] = Hash::make($validated['password']);
+                // $validated['password'] = Hash::make($validated['password']);
                 //return the id if the row after saving
                 $userID = User::insertGetId($validated);
                 //user's all the information
-                $userInfo = User::where('id', '=', $userID)->fisrt();
+                $userInfo = User::where('id', '=', $userID)->first();
 
                 $accesToken = $userInfo->createToken(uniqid())->plainTextToken;
 
@@ -71,8 +98,8 @@ class UserController extends Controller
 
                 User::where('id', '=', $userID)->update(['access_token' => $accesToken]);
                 return response()->json([
-                    'status' => true,
-                    'message' => 'User Created Successfuly',
+                    'code' => 200,
+                    'msg' => 'User Created Successfuly',
                     'data' => $userInfo
                 ], 200);
             }
@@ -81,9 +108,9 @@ class UserController extends Controller
             User::where('open_id', '=', $validated['open_id'])->update(['access_token' => $accesToken]);
 
             return response()->json([
-                'status' => true,
-                'message' => 'User logged in Successfuly',
-                'token' => $user,
+                'code' => 200,
+                'msg' => 'User logged in Successfuly',
+                'data' => $user,
             ], 200);
 
 
