@@ -19,6 +19,9 @@ Route::group(['namespace' => 'Api'], function () {
     //authentification middleware
     Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::any('/courseListe', 'CourseController@courseListe');
+        Route::any('/courseDetail', 'CourseController@courseDetail');
+        Route::any('/lessonList', 'LessonController@LessonList');
+        Route::any('/lessonDetail', 'LessonController@lessonDetail');
     });
 });
 // Route::post('auth/login', [UserController::class, 'loginUser']);

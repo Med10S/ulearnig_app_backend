@@ -15,4 +15,5 @@ Route::group([
     $router->resource('/users', UserController::class);
     $router->resource('/course-types', CourseTypeController::class);
     $router->resource('/course', CourseController::class);
+    $router->resource('/lessons', LessonController::class);
 });

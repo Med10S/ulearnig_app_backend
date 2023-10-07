@@ -20,7 +20,7 @@ class CourseController extends AdminController
         $grid = new Grid(new Course());
         //the first argument is the database field
         $grid->column('id', __('Id'));
-        //display help you ti do oppenration on the value 
+        //display help you to do oppenration on the value 
         $grid->column('user_token', __('Teacher'))->display(function ($token) {
             //for further processing data, 
             //you can creat any methode inside it or do opperation
